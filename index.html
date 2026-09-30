@@ -1,0 +1,1905 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
+  <title>에듀잇티 우리 반 퀴즈쇼</title>
+  <meta name="description" content="태블릿과 전자칠판에서 함께 즐기는 에듀잇티 우리 반 퀴즈쇼">
+  <meta property="og:title" content="에듀잇티 우리 반 퀴즈쇼">
+  <meta property="og:description" content="태블릿과 전자칠판에서 함께 즐기는 에듀잇티 우리 반 퀴즈쇼">
+  <meta property="og:type" content="website">
+  <style>
+    /* CSS Reset & 테마 기본 변수 */
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    :root {
+      --bg-stage: #0c1222;
+      --card-stage: #162038;
+      --text-main: #f8fafc;
+      --text-sub: #cbd5e1;
+      --yellow-quiz: #fde047;
+      --yellow-glow: #eab308;
+      --purple-cloud: #9333ea;
+      --purple-cloud-bg: #f3e8ff;
+      --coral-btn: #fb7185;
+      --coral-shadow: #be123c;
+      --coral-text: #4c0519;
+      --mint-btn: #34d399;
+      --mint-shadow: #047857;
+      --mint-text: #022c22;
+      --blue-btn: #60a5fa;
+      --blue-shadow: #1d4ed8;
+      --blue-text: #082f49;
+      --lavender-btn: #c084fc;
+      --lavender-shadow: #7e22ce;
+      --lavender-text: #3b0764;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Malgun Gothic", "Pretendard", "Segoe UI", Roboto, sans-serif;
+      background: radial-gradient(circle at 50% 15%, #1e295d 0%, #0a0f1d 75%);
+      background-attachment: fixed;
+      color: var(--text-main);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      padding: 12px 14px 28px 14px;
+      overflow-x: hidden;
+      overflow-y: auto;
+      line-height: 1.45;
+    }
+
+    /* 캔버스 (폭죽 축하 효과) */
+    #confetti-canvas {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      pointer-events: none;
+      z-index: 9999;
+    }
+
+    /* 퀴즈 메인 카드 */
+    .quiz-card {
+      width: 100%;
+      max-width: 960px;
+      background: var(--card-stage);
+      border-radius: 26px;
+      box-shadow: 0 16px 40px rgba(0, 0, 0, 0.5), 0 0 0 2px rgba(253, 224, 71, 0.25);
+      border: 3px solid #38bdf8;
+      padding: 20px 18px;
+      margin: 4px auto 20px auto;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      position: relative;
+    }
+
+    @media (min-width: 768px) {
+      .quiz-card {
+        padding: 28px 26px;
+        gap: 20px;
+      }
+    }
+
+    /* 머리글: 보라색 구름 + 에듀잇티 + 노란 제목 */
+    .quiz-header {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      border-bottom: 2px solid rgba(255, 255, 255, 0.12);
+      padding-bottom: 14px;
+    }
+
+    .header-top-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    /* 보라색 구름 & 에듀잇티 뱃지 */
+    .cloud-brand {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: linear-gradient(135deg, #7c3aed 0%, #9333ea 100%);
+      color: #ffffff;
+      padding: 6px 14px;
+      border-radius: 9999px;
+      font-size: 0.95em;
+      font-weight: 900;
+      box-shadow: 0 4px 14px rgba(147, 51, 234, 0.4);
+      border: 1.5px solid #c084fc;
+    }
+
+    .cloud-icon-svg {
+      width: 22px;
+      height: 22px;
+      fill: #ffffff;
+      filter: drop-shadow(0 1px 2px rgba(0,0,0,0.2));
+    }
+
+    /* 노란 퀴즈쇼 제목 */
+    .quiz-show-title {
+      font-size: 1.6em;
+      font-weight: 900;
+      color: var(--yellow-quiz);
+      text-shadow: 0 0 16px rgba(253, 224, 71, 0.4), 0 2px 4px rgba(0, 0, 0, 0.6);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      letter-spacing: -0.5px;
+    }
+
+    @media (min-width: 768px) {
+      .quiz-show-title {
+        font-size: 2em;
+      }
+    }
+
+    /* 제어 버튼 모음 (소리, 움직임 줄이기, 전체화면, 문제 편집) */
+    .header-controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      align-items: center;
+    }
+
+    .ctrl-btn {
+      background: #1e293b;
+      color: #e2e8f0;
+      border: 2px solid #475569;
+      border-radius: 12px;
+      padding: 7px 12px;
+      font-size: 0.85em;
+      font-weight: 800;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      touch-action: manipulation;
+      transition: all 0.15s ease;
+      user-select: none;
+    }
+
+    .ctrl-btn:hover:not(:disabled) {
+      background: #334155;
+      border-color: #94a3b8;
+    }
+
+    .ctrl-btn:active:not(:disabled) {
+      transform: translateY(1px);
+    }
+
+    .ctrl-btn:disabled {
+      opacity: 0.45;
+      cursor: not-allowed;
+    }
+
+    .ctrl-btn.active-state {
+      background: #0284c7;
+      border-color: #38bdf8;
+      color: #ffffff;
+    }
+
+    .ctrl-btn.edit-btn {
+      background: #065f46;
+      color: #a7f3d0;
+      border-color: #059669;
+    }
+
+    .ctrl-btn.edit-btn:hover:not(:disabled) {
+      background: #047857;
+      color: #ffffff;
+    }
+
+    /* 점수판 & 문제 진행 배너 (빛나는 노란 전광판 스타일) */
+    .scoreboard-strip {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 10px;
+      background: linear-gradient(90deg, #fef08a 0%, #fde047 100%);
+      color: #0f172a;
+      padding: 10px 18px;
+      border-radius: 18px;
+      box-shadow: 0 4px 18px rgba(234, 179, 8, 0.35);
+      border: 2px solid #ca8a04;
+    }
+
+    .score-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-weight: 900;
+      font-size: 1.15em;
+      letter-spacing: -0.5px;
+    }
+
+    .score-val {
+      font-size: 1.35em;
+      color: #b45309;
+      font-weight: 900;
+    }
+
+    /* 순서 안내 스텝 바 (컴팩트) */
+    .flow-steps {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 6px;
+      background: rgba(15, 23, 42, 0.6);
+      padding: 6px;
+      border-radius: 14px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .step-item {
+      text-align: center;
+      padding: 6px 2px;
+      border-radius: 10px;
+      font-size: 0.8em;
+      font-weight: 800;
+      color: #94a3b8;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      transition: all 0.25s ease;
+    }
+
+    .step-item.active {
+      background: #2563eb;
+      color: #ffffff;
+      box-shadow: 0 2px 8px rgba(37, 99, 235, 0.4);
+    }
+
+    .step-item.completed {
+      background: #065f46;
+      color: #6ee7b7;
+    }
+
+    /* 문제 영역 */
+    .question-box {
+      background: #1e293b;
+      border: 2.5px solid #475569;
+      border-radius: 20px;
+      padding: 20px 18px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      gap: 12px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    }
+
+    .question-category-tag {
+      background: #ea580c;
+      color: #ffffff;
+      padding: 4px 14px;
+      border-radius: 9999px;
+      font-size: 0.85em;
+      font-weight: 900;
+    }
+
+    .question-text {
+      font-size: 1.55em;
+      font-weight: 900;
+      color: #ffffff;
+      line-height: 1.35;
+      word-break: keep-all;
+    }
+
+    @media (min-width: 768px) {
+      .question-text {
+        font-size: 1.95em;
+      }
+    }
+
+    /* 시각 자료 SVG 컨테이너 */
+    .visual-illust-container {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      margin: 2px 0;
+      width: 100%;
+    }
+
+    .visual-illust-container svg {
+      max-width: 100%;
+      height: auto;
+      filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.3));
+    }
+
+    /* 안내 / 경고 배너 */
+    .guidance-box {
+      display: none;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 12px 18px;
+      border-radius: 14px;
+      font-size: 1.1em;
+      font-weight: 800;
+      text-align: center;
+      animation: shake 0.35s ease;
+    }
+
+    .guidance-box.warning {
+      display: flex;
+      background-color: #450a0a;
+      color: #fca5a5;
+      border: 2px solid #ef4444;
+    }
+
+    .guidance-box.info {
+      display: flex;
+      background-color: #082f49;
+      color: #7dd3fc;
+      border: 2px solid #38bdf8;
+    }
+
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      25% { transform: translateX(-6px); }
+      75% { transform: translateX(6px); }
+    }
+
+    /* 4가지 입체 보기 버튼 그리드 */
+    .options-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 14px;
+      margin-top: 2px;
+    }
+
+    @media (min-width: 600px) {
+      .options-grid {
+        grid-template-columns: 1fr 1fr;
+        gap: 16px;
+      }
+    }
+
+    /* 큰 입체 보기 버튼 (3D Tactile Buttons) */
+    .option-btn-3d {
+      border: none;
+      border-radius: 20px;
+      padding: 18px 20px;
+      font-size: 1.35em;
+      font-weight: 900;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      text-align: left;
+      min-height: 82px;
+      position: relative;
+      touch-action: manipulation;
+      user-select: none;
+      transition: transform 0.1s ease, border-bottom 0.1s ease, filter 0.15s ease;
+    }
+
+    @media (min-width: 768px) {
+      .option-btn-3d {
+        font-size: 1.55em;
+        min-height: 94px;
+        padding: 20px 22px;
+      }
+    }
+
+    .option-btn-3d:active:not(:disabled) {
+      transform: translateY(4px) !important;
+      border-bottom-width: 2px !important;
+    }
+
+    /* 4가지 색상 테마: 밝은 버튼 + 진한 굵은 글자 대비 */
+    /* 1번: 코랄 */
+    .option-btn-3d.theme-coral {
+      background: var(--coral-btn);
+      border-bottom: 6px solid var(--coral-shadow);
+      color: var(--coral-text);
+    }
+    /* 2번: 민트 */
+    .option-btn-3d.theme-mint {
+      background: var(--mint-btn);
+      border-bottom: 6px solid var(--mint-shadow);
+      color: var(--mint-text);
+    }
+    /* 3번: 파랑 */
+    .option-btn-3d.theme-blue {
+      background: var(--blue-btn);
+      border-bottom: 6px solid var(--blue-shadow);
+      color: var(--blue-text);
+    }
+    /* 4번: 라벤더 */
+    .option-btn-3d.theme-lavender {
+      background: var(--lavender-btn);
+      border-bottom: 6px solid var(--lavender-shadow);
+      color: var(--lavender-text);
+    }
+
+    /* 번호 원형 배지 */
+    .opt-number-badge {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      background: rgba(0, 0, 0, 0.16);
+      color: inherit;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.9em;
+      font-weight: 900;
+      flex-shrink: 0;
+      border: 2.5px solid rgba(0, 0, 0, 0.18);
+    }
+
+    .opt-label-text {
+      flex: 1;
+      font-weight: 900;
+    }
+
+    /* 체크 아이콘 (선택 표시) */
+    .opt-check-badge {
+      display: none;
+      align-items: center;
+      gap: 4px;
+      background: #0f172a;
+      color: #fde047;
+      padding: 4px 10px;
+      border-radius: 9999px;
+      font-size: 0.75em;
+      font-weight: 900;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+    }
+
+    /* 선택 상태 */
+    .option-btn-3d.is-selected {
+      outline: 4px solid #ffffff;
+      outline-offset: 2px;
+      filter: brightness(1.08);
+      transform: translateY(-2px);
+    }
+
+    .option-btn-3d.is-selected .opt-check-badge {
+      display: inline-flex;
+    }
+
+    /* 정답 상태 (반짝임 애니메이션) */
+    .option-btn-3d.is-correct {
+      outline: 5px solid #22c55e !important;
+      outline-offset: 2px;
+      animation: sparkle 1s ease-in-out infinite alternate;
+    }
+
+    .option-btn-3d.is-wrong {
+      opacity: 0.6;
+      filter: grayscale(40%);
+    }
+
+    .option-btn-3d.is-dimmed {
+      opacity: 0.4;
+      filter: grayscale(60%);
+    }
+
+    @keyframes sparkle {
+      0% {
+        box-shadow: 0 0 8px #22c55e, inset 0 0 10px rgba(255, 255, 255, 0.4);
+      }
+      100% {
+        box-shadow: 0 0 24px #4ade80, 0 0 40px #22c55e, inset 0 0 20px rgba(255, 255, 255, 0.8);
+      }
+    }
+
+    /* 결과 배너 */
+    .result-banner {
+      display: none;
+      border-radius: 18px;
+      padding: 16px 20px;
+      text-align: center;
+      font-size: 1.3em;
+      font-weight: 900;
+    }
+
+    .result-banner.correct {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      background: #064e3b;
+      border: 3px solid #10b981;
+      color: #a7f3d0;
+    }
+
+    .result-banner.wrong {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      background: #450a0a;
+      border: 3px solid #ef4444;
+      color: #fca5a5;
+    }
+
+    /* 해설 카드 */
+    .explanation-card {
+      display: none;
+      background: #1e293b;
+      border: 2.5px solid #64748b;
+      border-radius: 18px;
+      padding: 20px;
+    }
+
+    .explanation-card.show {
+      display: block;
+    }
+
+    .explanation-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 1.1em;
+      font-weight: 900;
+      color: #fde047;
+      margin-bottom: 10px;
+      border-bottom: 1.5px dashed rgba(255, 255, 255, 0.15);
+      padding-bottom: 8px;
+    }
+
+    .explanation-body {
+      font-size: 1.25em;
+      font-weight: 800;
+      color: #ffffff;
+      line-height: 1.55;
+      background: #0f172a;
+      border-radius: 14px;
+      padding: 16px 18px;
+      border-left: 5px solid #38bdf8;
+      word-break: keep-all;
+    }
+
+    /* 하단 조작 버튼 영역 */
+    .action-area {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-top: 4px;
+    }
+
+    @media (min-width: 600px) {
+      .action-area {
+        flex-direction: row;
+        gap: 14px;
+      }
+    }
+
+    .show-main-btn {
+      flex: 1;
+      background: #2563eb;
+      color: #ffffff;
+      border: none;
+      border-bottom: 5px solid #1d4ed8;
+      border-radius: 18px;
+      padding: 16px 22px;
+      font-size: 1.3em;
+      font-weight: 900;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      min-height: 68px;
+      touch-action: manipulation;
+      transition: all 0.1s ease;
+    }
+
+    .show-main-btn:hover:not(:disabled) {
+      background: #1d4ed8;
+    }
+
+    .show-main-btn:active:not(:disabled) {
+      transform: translateY(3px);
+      border-bottom-width: 2px;
+    }
+
+    .show-main-btn:disabled {
+      opacity: 0.65;
+      cursor: not-allowed;
+      filter: grayscale(30%);
+    }
+
+    .show-next-btn {
+      background: #0284c7;
+      border-bottom-color: #0369a1;
+    }
+
+    .show-next-btn:hover:not(:disabled) {
+      background: #0369a1;
+    }
+
+    .show-sub-btn {
+      background: #334155;
+      color: #f1f5f9;
+      border: 2px solid #64748b;
+      border-bottom: 5px solid #1e293b;
+      border-radius: 18px;
+      padding: 16px 20px;
+      font-size: 1.2em;
+      font-weight: 900;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      min-height: 68px;
+      touch-action: manipulation;
+      transition: all 0.1s ease;
+    }
+
+    .show-sub-btn:hover {
+      background: #475569;
+    }
+
+    .show-sub-btn:active {
+      transform: translateY(3px);
+      border-bottom-width: 2px;
+    }
+
+    /* 최종 결과 카드 */
+    .final-score-section {
+      display: none;
+      background: linear-gradient(135deg, #1e295d 0%, #172554 100%);
+      border: 3px solid #60a5fa;
+      border-radius: 22px;
+      padding: 32px 20px;
+      text-align: center;
+      flex-direction: column;
+      align-items: center;
+      gap: 18px;
+    }
+
+    .final-score-section.show {
+      display: flex;
+    }
+
+    .final-score-display {
+      font-size: 3em;
+      font-weight: 900;
+      color: var(--yellow-quiz);
+      text-shadow: 0 0 16px rgba(253, 224, 71, 0.4);
+      background: #0f172a;
+      padding: 14px 36px;
+      border-radius: 20px;
+      border: 2px solid #eab308;
+    }
+
+    /* 움직임 줄이기 모드 적용 스타일 */
+    body.reduced-motion *,
+    body.reduced-motion *::before,
+    body.reduced-motion *::after {
+      animation: none !important;
+      transition: none !important;
+    }
+
+    /* 편집 모달 */
+    .modal-backdrop {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: rgba(10, 15, 29, 0.85);
+      backdrop-filter: blur(5px);
+      z-index: 10000;
+      align-items: center;
+      justify-content: center;
+      padding: 14px;
+      overflow-y: auto;
+    }
+
+    .modal-backdrop.show {
+      display: flex;
+    }
+
+    .modal-content {
+      background: #1e293b;
+      border-radius: 22px;
+      border: 3px solid #38bdf8;
+      width: 100%;
+      max-width: 820px;
+      max-height: 86vh;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6);
+      color: #ffffff;
+    }
+
+    .modal-header {
+      padding: 18px 22px;
+      background: #0f172a;
+      border-bottom: 2px solid #334155;
+      border-radius: 18px 18px 0 0;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .modal-title-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .modal-title {
+      font-size: 1.4em;
+      font-weight: 900;
+      color: var(--yellow-quiz);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .modal-notice-banner {
+      background: #78350f;
+      color: #fef08a;
+      border: 1.5px solid #eab308;
+      border-radius: 10px;
+      padding: 8px 12px;
+      font-size: 0.9em;
+      font-weight: 800;
+    }
+
+    .modal-body {
+      padding: 18px 22px;
+      overflow-y: auto;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    .edit-q-card {
+      background: #0f172a;
+      border: 2px solid #334155;
+      border-radius: 16px;
+      padding: 16px 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .edit-q-title {
+      font-size: 1.1em;
+      font-weight: 900;
+      color: #60a5fa;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .form-label {
+      font-size: 0.9em;
+      font-weight: 800;
+      color: #cbd5e1;
+    }
+
+    .form-input, .form-textarea, .form-select {
+      width: 100%;
+      background: #1e293b;
+      border: 2px solid #475569;
+      border-radius: 10px;
+      padding: 10px 12px;
+      font-size: 1em;
+      font-weight: 700;
+      color: #ffffff;
+      font-family: inherit;
+    }
+
+    .form-input:focus, .form-textarea:focus, .form-select:focus {
+      outline: none;
+      border-color: #38bdf8;
+      box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.25);
+    }
+
+    .edit-options-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 8px;
+    }
+
+    @media (min-width: 600px) {
+      .edit-options-grid {
+        grid-template-columns: 1fr 1fr;
+      }
+    }
+
+    .modal-error-box {
+      display: none;
+      background: #7f1d1d;
+      color: #fecaca;
+      border: 2px solid #ef4444;
+      border-radius: 12px;
+      padding: 12px 16px;
+      font-size: 0.95em;
+      font-weight: 800;
+    }
+
+    .modal-footer {
+      padding: 14px 20px;
+      background: #0f172a;
+      border-top: 2px solid #334155;
+      border-radius: 0 0 18px 18px;
+      display: flex;
+      gap: 10px;
+      justify-content: flex-end;
+      flex-wrap: wrap;
+    }
+
+    .modal-footer button {
+      min-height: 52px;
+      padding: 10px 22px;
+      font-size: 1.1em;
+      border-radius: 12px;
+      font-weight: 900;
+      cursor: pointer;
+      touch-action: manipulation;
+    }
+
+    .btn-apply {
+      background: #16a34a;
+      color: #ffffff;
+      border: none;
+      flex: 1;
+    }
+
+    .btn-apply:hover {
+      background: #15803d;
+    }
+
+    .btn-cancel {
+      background: #334155;
+      color: #e2e8f0;
+      border: 2px solid #64748b;
+    }
+
+    .btn-cancel:hover {
+      background: #475569;
+    }
+  </style>
+</head>
+<body>
+  <!-- 축하 효과용 캔버스 (무외부 라이브러리) -->
+  <canvas id="confetti-canvas"></canvas>
+
+  <main class="quiz-card" role="main">
+    <!-- 머리글: 보라색 구름 + 에듀잇티 + 노란 제목 + 제어 도구 -->
+    <header class="quiz-header">
+      <div class="header-top-row">
+        <!-- 보라색 구름 & 에듀잇티 -->
+        <div class="cloud-brand" aria-label="에듀잇티 브랜드">
+          <!-- 보라색 구름 SVG -->
+          <svg class="cloud-icon-svg" viewBox="0 0 24 24">
+            <path d="M19.35 10.04C18.67 6.59 15.64 4 12 4 9.11 4 6.6 5.64 5.35 8.04 2.34 8.36 0 10.91 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96z"/>
+          </svg>
+          <span>에듀잇티</span>
+        </div>
+
+        <h1 class="quiz-show-title">
+          <span>✨</span>
+          <span>우리 반 퀴즈쇼</span>
+        </h1>
+
+        <!-- 제어 버튼 (라벨 글자 명시) -->
+        <div class="header-controls">
+          <button id="btn-sound-toggle" class="ctrl-btn" type="button" aria-label="소리 토글">
+            <span id="sound-icon">🔇</span>
+            <span id="sound-label">소리 켜기</span>
+          </button>
+          <button id="btn-motion-toggle" class="ctrl-btn" type="button" aria-label="움직임 줄이기 토글">
+            <span id="motion-icon">🏃</span>
+            <span id="motion-label">움직임 켬</span>
+          </button>
+          <button id="btn-fullscreen-toggle" class="ctrl-btn" type="button" aria-label="전체화면 토글">
+            <span id="fullscreen-icon">⛶</span>
+            <span id="fullscreen-label">전체화면</span>
+          </button>
+          <button id="btn-open-edit" class="ctrl-btn edit-btn" type="button" aria-label="문제 편집">
+            <span>✏️</span>
+            <span>문제 편집</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- 노란 전광판 스타일 점수판 및 진행 상태 -->
+      <div class="scoreboard-strip">
+        <div class="score-item">
+          <span>📝</span>
+          <span id="qnum-display">문제 1 / 3</span>
+        </div>
+        <div class="score-item">
+          <span>⭐ 점수판</span>
+          <span id="score-display" class="score-val">0점</span>
+        </div>
+        <div class="score-item" style="font-size: 0.95em; color: #713f12;">
+          <span>🎯 만점 300점</span>
+        </div>
+      </div>
+    </header>
+
+    <!-- 진행 순서 안내 스텝 바 -->
+    <nav class="flow-steps" aria-label="퀴즈 진행 단계">
+      <div id="step-indicator-1" class="step-item active">
+        <span>1. 보기 선택</span>
+      </div>
+      <div id="step-indicator-2" class="step-item">
+        <span>2. 정답 공개</span>
+      </div>
+      <div id="step-indicator-3" class="step-item">
+        <span>3. 해설 확인</span>
+      </div>
+      <div id="step-indicator-4" class="step-item">
+        <span>4. 다음 진행</span>
+      </div>
+    </nav>
+
+    <!-- 퀴즈 문제 진행 영역 -->
+    <div id="quiz-active-area" style="display: flex; flex-direction: column; gap: 16px;">
+      <!-- 문제 영역 -->
+      <section class="question-box" aria-labelledby="question-heading">
+        <span id="question-tag" class="question-category-tag">수학 퀴즈</span>
+        <h2 id="question-heading" class="question-text">
+          삼각형의 변은 몇 개일까요?
+        </h2>
+
+        <!-- 시각 보조 자료 -->
+        <div id="visual-illust-container" class="visual-illust-container" aria-hidden="true"></div>
+      </section>
+
+      <!-- 안내/경고 박스 -->
+      <div id="guidance-box" class="guidance-box" role="alert" aria-live="assertive">
+        <span id="guidance-icon">👉</span>
+        <span id="guidance-msg">아래 보기 버튼 중 하나를 선택해 주세요!</span>
+      </div>
+
+      <!-- 정답/오답 결과 배너 -->
+      <div id="result-banner" class="result-banner" role="status" aria-live="polite"></div>
+
+      <!-- 4가지 색상(코랄, 민트, 파랑, 라벤더) 큰 입체 보기 버튼 그리드 -->
+      <fieldset class="options-container" style="border: none; padding: 0;">
+        <legend class="sr-only" style="position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0,0,0,0);">
+          보기 선택
+        </legend>
+        <div class="options-grid" id="options-grid"></div>
+      </fieldset>
+
+      <!-- 해설 카드 -->
+      <section id="explanation-card" class="explanation-card" aria-labelledby="explanation-title">
+        <div class="explanation-header">
+          <span>💡</span>
+          <span id="explanation-title">선생님의 퀴즈쇼 핵심 해설</span>
+        </div>
+        <div id="explanation-body" class="explanation-body"></div>
+      </section>
+
+      <!-- 하단 조작 버튼 영역 -->
+      <footer class="action-area" id="action-area">
+        <!-- 1단계: 정답 공개 버튼 -->
+        <button type="button" id="btn-reveal" class="show-main-btn">
+          <span id="reveal-icon">🔍</span>
+          <span id="reveal-text">정답 공개하기</span>
+        </button>
+
+        <!-- 2단계: 해설 보기 버튼 -->
+        <button type="button" id="btn-explanation" class="show-sub-btn" style="display: none;">
+          <span>📖</span>
+          <span>해설 보기</span>
+        </button>
+
+        <!-- 3단계: 다음 문제 버튼 -->
+        <button type="button" id="btn-next" class="show-main-btn show-next-btn" style="display: none;">
+          <span>➡️</span>
+          <span id="next-btn-text">다음 문제로 가기</span>
+        </button>
+      </footer>
+    </div>
+
+    <!-- 최종 점수 화면 -->
+    <section id="final-score-section" class="final-score-section" aria-labelledby="final-title">
+      <div style="font-size: 3.8em; line-height: 1;">🏆</div>
+      <h2 id="final-title" style="font-size: 2em; font-weight: 900; color: #ffffff;">퀴즈쇼가 모두 끝났습니다!</h2>
+      <div id="final-score-display" class="final-score-display">0점</div>
+      <p id="final-message" style="font-size: 1.3em; font-weight: 800; color: #cbd5e1;"></p>
+      <button type="button" id="btn-restart-final" class="show-main-btn" style="background: #ea580c; border-bottom-color: #9a3412; width: 100%; max-width: 440px;">
+        <span>🔄</span>
+        <span>다시 시작하기 (문제 1번 / 0점)</span>
+      </button>
+    </section>
+
+    <!-- 하단 힌트 텍스트 -->
+    <div style="text-align: center; font-size: 0.82em; font-weight: 700; color: #64748b; padding-top: 4px;">
+      에듀잇티 퀴즈쇼 • 태블릿 & 전자칠판 터치 지원 • 소리 기본 꺼짐
+    </div>
+  </main>
+
+  <!-- 문제 편집 모달창 -->
+  <div id="edit-modal" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="edit-modal-title">
+    <div class="modal-content">
+      <header class="modal-header">
+        <div class="modal-title-row">
+          <h2 id="edit-modal-title" class="modal-title">
+            <span>✏️</span>
+            <span>퀴즈쇼 문제 편집</span>
+          </h2>
+        </div>
+        <div class="modal-notice-banner">
+          💡 새로고침하면 기본 문제로 돌아갑니다
+        </div>
+      </header>
+
+      <div class="modal-body" id="modal-edit-body">
+        <div id="modal-error-box" class="modal-error-box"></div>
+        <div id="edit-questions-container" style="display: flex; flex-direction: column; gap: 18px;"></div>
+      </div>
+
+      <footer class="modal-footer">
+        <button type="button" id="btn-modal-cancel" class="btn-cancel">
+          취소 (현재 퀴즈 유지)
+        </button>
+        <button type="button" id="btn-modal-apply" class="btn-apply">
+          적용하고 0점부터 시작
+        </button>
+      </footer>
+    </div>
+  </div>
+
+  <script>
+    (function () {
+      'use strict';
+
+      // 4가지 입체 버튼 테마 색상 클래스
+      var THEME_CLASSES = ['theme-coral', 'theme-mint', 'theme-blue', 'theme-lavender'];
+
+      // 기본 퀴즈 3문제 데이터
+      var DEFAULT_QUESTIONS = [
+        {
+          id: 1,
+          tag: "수학 퀴즈 1",
+          question: "삼각형의 변은 몇 개일까요?",
+          options: ["2개", "3개", "4개", "5개"],
+          correctNum: 2, // 정답: 3개
+          explanation: "삼각형은 변이 3개인 다각형입니다.",
+          visualType: "triangle"
+        },
+        {
+          id: 2,
+          tag: "수학 퀴즈 2",
+          question: "1/2과 크기가 같은 분수는?",
+          options: ["1/3", "2/4", "2/3", "3/4"],
+          correctNum: 2, // 정답: 2/4
+          explanation: "분모와 분자에 같은 수인 2를 곱하면 1/2 = 2/4가 되므로 두 분수의 크기는 같습니다.",
+          visualType: "fraction"
+        },
+        {
+          id: 3,
+          tag: "수학 퀴즈 3",
+          question: "1m는 몇 cm일까요?",
+          options: ["10", "50", "100", "1000"],
+          correctNum: 3, // 정답: 100
+          explanation: "1m(미터)는 100cm(센티미터)입니다. 100cm가 모여 1m가 됩니다.",
+          visualType: "length"
+        }
+      ];
+
+      // 현재 문제 데이터
+      var questions = JSON.parse(JSON.stringify(DEFAULT_QUESTIONS));
+
+      // 퀴즈 진행 상태
+      var currentIndex = 0;
+      var currentScore = 0;
+      var selectedOptionNum = null;
+      var isRevealing = false; // 드럼롤 중 여부
+      var isRevealed = false;   // 정답 공개 완료 여부
+      var scoreEarnedThisQuestion = false;
+
+      // 설정 플래그 (소리 기본 꺼짐, 움직임 기본 켜짐)
+      var soundEnabled = false;
+      var reducedMotion = false;
+
+      // DOM 참조
+      var qnumDisplay = document.getElementById('qnum-display');
+      var scoreDisplay = document.getElementById('score-display');
+      var questionTag = document.getElementById('question-tag');
+      var questionHeading = document.getElementById('question-heading');
+      var visualContainer = document.getElementById('visual-illust-container');
+      var optionsGrid = document.getElementById('options-grid');
+      var guidanceBox = document.getElementById('guidance-box');
+      var guidanceMsg = document.getElementById('guidance-msg');
+      var resultBanner = document.getElementById('result-banner');
+      var explanationCard = document.getElementById('explanation-card');
+      var explanationBody = document.getElementById('explanation-body');
+
+      var quizActiveArea = document.getElementById('quiz-active-area');
+      var finalScoreSection = document.getElementById('final-score-section');
+      var finalScoreDisplay = document.getElementById('final-score-display');
+      var finalMessage = document.getElementById('final-message');
+      var btnRestartFinal = document.getElementById('btn-restart-final');
+
+      var btnReveal = document.getElementById('btn-reveal');
+      var revealIcon = document.getElementById('reveal-icon');
+      var revealText = document.getElementById('reveal-text');
+      var btnExplanation = document.getElementById('btn-explanation');
+      var btnNext = document.getElementById('btn-next');
+      var nextBtnText = document.getElementById('next-btn-text');
+
+      var step1 = document.getElementById('step-indicator-1');
+      var step2 = document.getElementById('step-indicator-2');
+      var step3 = document.getElementById('step-indicator-3');
+      var step4 = document.getElementById('step-indicator-4');
+
+      // 상단 제어 버튼
+      var btnSoundToggle = document.getElementById('btn-sound-toggle');
+      var soundIcon = document.getElementById('sound-icon');
+      var soundLabel = document.getElementById('sound-label');
+
+      var btnMotionToggle = document.getElementById('btn-motion-toggle');
+      var motionIcon = document.getElementById('motion-icon');
+      var motionLabel = document.getElementById('motion-label');
+
+      var btnFullscreenToggle = document.getElementById('btn-fullscreen-toggle');
+      var fullscreenIcon = document.getElementById('fullscreen-icon');
+      var fullscreenLabel = document.getElementById('fullscreen-label');
+
+      var btnOpenEdit = document.getElementById('btn-open-edit');
+
+      // 편집 모달
+      var editModal = document.getElementById('edit-modal');
+      var editQuestionsContainer = document.getElementById('edit-questions-container');
+      var modalErrorBox = document.getElementById('modal-error-box');
+      var btnModalCancel = document.getElementById('btn-modal-cancel');
+      var btnModalApply = document.getElementById('btn-modal-apply');
+
+      // ==============================================
+      // Web Audio API 신디사이저 (외부 음원 없이 직접 생성)
+      // ==============================================
+      var audioCtx = null;
+      function getAudioContext() {
+        if (!audioCtx) {
+          var AudioContextClass = window.AudioContext || window.webkitAudioContext;
+          if (AudioContextClass) audioCtx = new AudioContextClass();
+        }
+        if (audioCtx && audioCtx.state === 'suspended') {
+          audioCtx.resume();
+        }
+        return audioCtx;
+      }
+
+      function playSound(type) {
+        if (!soundEnabled) return; // 소리가 꺼져 있으면 일체 재생 안 함
+        try {
+          var ctx = getAudioContext();
+          if (!ctx) return;
+          var now = ctx.currentTime;
+
+          if (type === 'select') {
+            // 선택음: 경쾌한 팝 사운드
+            var osc = ctx.createOscillator();
+            var gain = ctx.createGain();
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(540, now);
+            osc.frequency.exponentialRampToValueAtTime(820, now + 0.07);
+            gain.gain.setValueAtTime(0.15, now);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + 0.07);
+            osc.connect(gain);
+            gain.connect(ctx.destination);
+            osc.start(now);
+            osc.stop(now + 0.07);
+          } else if (type === 'drumroll') {
+            // 드럼롤: 빠른 연타 스네어/진동 효과 (약 850ms)
+            var duration = 0.85;
+            var hits = 22;
+            for (var i = 0; i < hits; i++) {
+              var hitTime = now + (i * (duration / hits));
+              var oscD = ctx.createOscillator();
+              var gainD = ctx.createGain();
+              oscD.type = (i % 2 === 0) ? 'triangle' : 'square';
+              oscD.frequency.setValueAtTime(140 + (i * 5), hitTime);
+              gainD.gain.setValueAtTime(0.1 + (i * 0.006), hitTime);
+              gainD.gain.exponentialRampToValueAtTime(0.001, hitTime + 0.035);
+              oscD.connect(gainD);
+              gainD.connect(ctx.destination);
+              oscD.start(hitTime);
+              oscD.stop(hitTime + 0.035);
+            }
+          } else if (type === 'correct') {
+            // 정답음: 맑고 풍성한 팡파르 화음
+            var freqs = [523.25, 659.25, 783.99, 1046.50];
+            freqs.forEach(function (f, idx) {
+              var oscC = ctx.createOscillator();
+              var gainC = ctx.createGain();
+              oscC.type = 'triangle';
+              oscC.frequency.setValueAtTime(f, now + (idx * 0.08));
+              gainC.gain.setValueAtTime(0.2, now + (idx * 0.08));
+              gainC.gain.exponentialRampToValueAtTime(0.001, now + (idx * 0.08) + 0.38);
+              oscC.connect(gainC);
+              gainC.connect(ctx.destination);
+              oscC.start(now + (idx * 0.08));
+              oscC.stop(now + (idx * 0.08) + 0.38);
+            });
+          } else if (type === 'wrong') {
+            // 오답음: 차분한 하강음
+            var oscW = ctx.createOscillator();
+            var gainW = ctx.createGain();
+            oscW.type = 'sawtooth';
+            oscW.frequency.setValueAtTime(260, now);
+            oscW.frequency.linearRampToValueAtTime(180, now + 0.28);
+            gainW.gain.setValueAtTime(0.16, now);
+            gainW.gain.exponentialRampToValueAtTime(0.001, now + 0.28);
+            oscW.connect(gainW);
+            gainW.connect(ctx.destination);
+            oscW.start(now);
+            oscW.stop(now + 0.28);
+          } else if (type === 'fanfare') {
+            // 완료음: 최종 완료 축하 멜로디
+            var melody = [
+              { f: 523.25, d: 0.12 },
+              { f: 659.25, d: 0.12 },
+              { f: 783.99, d: 0.15 },
+              { f: 1046.50, d: 0.35 }
+            ];
+            var t = now;
+            melody.forEach(function (note) {
+              var oscM = ctx.createOscillator();
+              var gainM = ctx.createGain();
+              oscM.type = 'triangle';
+              oscM.frequency.setValueAtTime(note.f, t);
+              gainM.gain.setValueAtTime(0.22, t);
+              gainM.gain.exponentialRampToValueAtTime(0.001, t + note.d);
+              oscM.connect(gainM);
+              gainM.connect(ctx.destination);
+              oscM.start(t);
+              oscM.stop(t + note.d);
+              t += note.d * 0.85;
+            });
+          } else if (type === 'warn') {
+            var oscWarn = ctx.createOscillator();
+            var gainWarn = ctx.createGain();
+            oscWarn.type = 'sine';
+            oscWarn.frequency.setValueAtTime(360, now);
+            gainWarn.gain.setValueAtTime(0.16, now);
+            gainWarn.gain.exponentialRampToValueAtTime(0.001, now + 0.12);
+            oscWarn.connect(gainWarn);
+            gainWarn.connect(ctx.destination);
+            oscWarn.start(now);
+            oscWarn.stop(now + 0.12);
+          }
+        } catch (e) {}
+      }
+
+      // ==============================================
+      // 캔버스 폭죽 효과
+      // ==============================================
+      var confettiCanvas = document.getElementById('confetti-canvas');
+      var confettiCtx = confettiCanvas.getContext('2d');
+      var confettiParticles = [];
+      var confettiAnimId = null;
+
+      function resizeCanvas() {
+        confettiCanvas.width = window.innerWidth;
+        confettiCanvas.height = window.innerHeight;
+      }
+      window.addEventListener('resize', resizeCanvas);
+      resizeCanvas();
+
+      function triggerConfetti() {
+        if (reducedMotion) return; // 움직임 줄이기 켜져 있으면 색종이 중단
+        confettiParticles = [];
+        var colors = ['#fde047', '#fb7185', '#34d399', '#60a5fa', '#c084fc', '#f97316'];
+        for (var i = 0; i < 95; i++) {
+          confettiParticles.push({
+            x: confettiCanvas.width / 2 + (Math.random() - 0.5) * 340,
+            y: confettiCanvas.height * 0.35,
+            vx: (Math.random() - 0.5) * 16,
+            vy: Math.random() * -14 - 4,
+            size: Math.random() * 9 + 5,
+            color: colors[Math.floor(Math.random() * colors.length)],
+            rotation: Math.random() * 360,
+            rotSpeed: (Math.random() - 0.5) * 12,
+            gravity: 0.35,
+            opacity: 1
+          });
+        }
+        if (confettiAnimId) cancelAnimationFrame(confettiAnimId);
+        renderConfetti();
+      }
+
+      function renderConfetti() {
+        if (reducedMotion) {
+          confettiCtx.clearRect(0, 0, confettiCanvas.width, confettiCanvas.height);
+          return;
+        }
+        confettiCtx.clearRect(0, 0, confettiCanvas.width, confettiCanvas.height);
+        var alive = false;
+        for (var i = 0; i < confettiParticles.length; i++) {
+          var p = confettiParticles[i];
+          p.x += p.vx;
+          p.y += p.vy;
+          p.vy += p.gravity;
+          p.rotation += p.rotSpeed;
+          p.opacity -= 0.007;
+
+          if (p.opacity > 0) {
+            alive = true;
+            confettiCtx.save();
+            confettiCtx.translate(p.x, p.y);
+            confettiCtx.rotate((p.rotation * Math.PI) / 180);
+            confettiCtx.globalAlpha = Math.max(0, p.opacity);
+            confettiCtx.fillStyle = p.color;
+            confettiCtx.fillRect(-p.size / 2, -p.size / 2, p.size, p.size * 0.8);
+            confettiCtx.restore();
+          }
+        }
+        if (alive) confettiAnimId = requestAnimationFrame(renderConfetti);
+        else confettiCtx.clearRect(0, 0, confettiCanvas.width, confettiCanvas.height);
+      }
+
+      // ==============================================
+      // 안내 / 경고 배너
+      // ==============================================
+      function showGuidance(msg, isWarning) {
+        guidanceMsg.textContent = msg;
+        guidanceBox.className = 'guidance-box ' + (isWarning ? 'warning' : 'info');
+        guidanceBox.style.display = 'flex';
+        if (!reducedMotion) {
+          guidanceBox.style.animation = 'none';
+          void guidanceBox.offsetWidth;
+          guidanceBox.style.animation = 'shake 0.35s ease';
+        }
+        if (isWarning) playSound('warn');
+      }
+
+      function hideGuidance() {
+        guidanceBox.style.display = 'none';
+      }
+
+      // ==============================================
+      // 시각 보조 SVG 생성
+      // ==============================================
+      function getVisualSvg(type) {
+        if (type === 'triangle') {
+          return '<svg viewBox="0 0 160 120" style="width: 140px; height: 105px;">' +
+            '<polygon points="80,10 15,105 145,105" fill="#fde68a" stroke="#d97706" stroke-width="4.5" stroke-linejoin="round" />' +
+            '<circle cx="43" cy="58" r="13" fill="#2563eb" /><text x="43" y="63" text-anchor="middle" fill="#fff" font-size="12" font-weight="900">변1</text>' +
+            '<circle cx="117" cy="58" r="13" fill="#2563eb" /><text x="117" y="63" text-anchor="middle" fill="#fff" font-size="12" font-weight="900">변2</text>' +
+            '<circle cx="80" cy="105" r="13" fill="#2563eb" /><text x="80" y="110" text-anchor="middle" fill="#fff" font-size="12" font-weight="900">변3</text>' +
+            '<circle cx="80" cy="10" r="5" fill="#ef4444" /><circle cx="15" cy="105" r="5" fill="#ef4444" /><circle cx="145" cy="105" r="5" fill="#ef4444" />' +
+            '</svg>';
+        } else if (type === 'fraction') {
+          return '<svg viewBox="0 0 280 95" style="width: 250px; height: 85px;">' +
+            '<rect x="20" y="12" width="240" height="26" fill="#334155" stroke="#64748b" stroke-width="2" rx="4" />' +
+            '<rect x="20" y="12" width="120" height="26" fill="#60a5fa" rx="4" />' +
+            '<text x="80" y="30" text-anchor="middle" fill="#0f172a" font-size="13" font-weight="900">1/2 (절반)</text>' +
+            '<rect x="20" y="48" width="240" height="26" fill="#334155" stroke="#64748b" stroke-width="2" rx="4" />' +
+            '<rect x="20" y="48" width="60" height="26" fill="#34d399" rx="4" />' +
+            '<rect x="80" y="48" width="60" height="26" fill="#34d399" rx="4" />' +
+            '<text x="80" y="66" text-anchor="middle" fill="#022c22" font-size="13" font-weight="900">2/4 (크기 같음)</text>' +
+            '</svg>';
+        } else if (type === 'length') {
+          return '<svg viewBox="0 0 290 80" style="width: 260px; height: 75px;">' +
+            '<rect x="10" y="15" width="270" height="40" fill="#fef08a" stroke="#ca8a04" stroke-width="2.5" rx="8" />' +
+            '<line x1="20" y1="15" x2="20" y2="35" stroke="#854d0e" stroke-width="2.5" />' +
+            '<line x1="80" y1="15" x2="80" y2="28" stroke="#854d0e" stroke-width="2" />' +
+            '<line x1="145" y1="15" x2="145" y2="35" stroke="#854d0e" stroke-width="2.5" />' +
+            '<line x1="210" y1="15" x2="210" y2="28" stroke="#854d0e" stroke-width="2" />' +
+            '<line x1="270" y1="15" x2="270" y2="35" stroke="#854d0e" stroke-width="2.5" />' +
+            '<text x="145" y="42" text-anchor="middle" fill="#713f12" font-size="15" font-weight="900">📏 1m = 100cm</text>' +
+            '</svg>';
+        }
+        return '';
+      }
+
+      // ==============================================
+      // 문제 렌더링
+      // ==============================================
+      function renderCurrentQuestion() {
+        var q = questions[currentIndex];
+
+        selectedOptionNum = null;
+        isRevealing = false;
+        isRevealed = false;
+        scoreEarnedThisQuestion = false;
+
+        quizActiveArea.style.display = 'flex';
+        finalScoreSection.classList.remove('show');
+
+        // 점수판 갱신
+        qnumDisplay.textContent = '문제 ' + (currentIndex + 1) + ' / ' + questions.length;
+        scoreDisplay.textContent = currentScore + '점';
+
+        // 질문 갱신
+        questionTag.textContent = q.tag || ('수학 퀴즈 ' + (currentIndex + 1));
+        questionHeading.textContent = q.question;
+
+        // 시각 자료 갱신
+        var svgHtml = getVisualSvg(q.visualType);
+        if (svgHtml) {
+          visualContainer.innerHTML = svgHtml;
+          visualContainer.style.display = 'flex';
+        } else {
+          visualContainer.innerHTML = '';
+          visualContainer.style.display = 'none';
+        }
+
+        // 보기 목록 렌더링 (코랄, 민트, 파랑, 라벤더)
+        optionsGrid.innerHTML = '';
+        q.options.forEach(function (optText, idx) {
+          var num = idx + 1;
+          var themeClass = THEME_CLASSES[idx % THEME_CLASSES.length];
+
+          var btn = document.createElement('button');
+          btn.type = 'button';
+          btn.className = 'option-btn-3d ' + themeClass;
+          btn.setAttribute('data-num', num);
+          btn.setAttribute('aria-pressed', 'false');
+
+          btn.innerHTML =
+            '<span class="opt-number-badge">' + num + '</span>' +
+            '<span class="opt-label-text">' + escapeHtml(optText) + '</span>' +
+            '<span class="opt-check-badge">✓ 선택</span>';
+
+          btn.addEventListener('click', function () {
+            // 드럼롤 중이거나 정답 공개 완료된 후에는 변경 불가 (엄격 잠금)
+            if (isRevealing || isRevealed) return;
+
+            playSound('select');
+            selectedOptionNum = num;
+
+            var allBtns = optionsGrid.querySelectorAll('.option-btn-3d');
+            allBtns.forEach(function (b) {
+              b.classList.remove('is-selected');
+              b.setAttribute('aria-pressed', 'false');
+            });
+
+            btn.classList.add('is-selected');
+            btn.setAttribute('aria-pressed', 'true');
+
+            hideGuidance();
+
+            step1.className = 'step-item completed';
+            step2.className = 'step-item active';
+          });
+
+          optionsGrid.appendChild(btn);
+        });
+
+        // 해설 및 결과 배너 숨김
+        resultBanner.style.display = 'none';
+        explanationCard.classList.remove('show');
+        explanationBody.textContent = q.explanation;
+        hideGuidance();
+
+        // 하단 버튼 구성 초기화
+        btnReveal.style.display = 'flex';
+        btnReveal.disabled = false;
+        revealIcon.textContent = '🔍';
+        revealText.textContent = '정답 공개하기';
+
+        btnExplanation.style.display = 'none';
+        btnNext.style.display = 'none';
+
+        btnOpenEdit.disabled = false; // 편집 버튼 잠금 해제
+
+        if (currentIndex === questions.length - 1) {
+          nextBtnText.textContent = '🏆 최종 점수 확인하기';
+        } else {
+          nextBtnText.textContent = '다음 문제로 가기 (문제 ' + (currentIndex + 2) + ')';
+        }
+
+        step1.className = 'step-item active';
+        step2.className = 'step-item';
+        step3.className = 'step-item';
+        step4.className = 'step-item';
+
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+
+      // ==============================================
+      // 1. 정답 공개 버튼 클릭 (드럼롤 -> 정답 공개)
+      // ==============================================
+      btnReveal.addEventListener('click', function () {
+        if (!selectedOptionNum) {
+          showGuidance('⚠️ 보기를 먼저 하나 선택해 주세요! (손가락으로 꾹 눌러보세요)', true);
+          return;
+        }
+
+        if (isRevealing || isRevealed) return; // 이미 진행 중이거나 공개됨
+
+        // 드럼롤 중에는 보기 변경 및 문제 편집 잠금, 중복 클릭 방지
+        isRevealing = true;
+        btnReveal.disabled = true;
+        btnOpenEdit.disabled = true;
+        hideGuidance();
+
+        // 보기 버튼들도 즉시 잠금
+        var allBtns = optionsGrid.querySelectorAll('.option-btn-3d');
+        allBtns.forEach(function (btn) {
+          btn.disabled = true;
+        });
+
+        // 버튼 텍스트 변경
+        revealIcon.textContent = '🥁';
+        revealText.textContent = '두구두구... 정답은?!';
+
+        // 드럼롤 효과음 재생 (소리 켜져 있을 때만)
+        playSound('drumroll');
+
+        // 드럼롤 연출 후 정답 발표 (약 850ms 후)
+        setTimeout(function () {
+          isRevealing = false;
+          isRevealed = true;
+          btnOpenEdit.disabled = false; // 편집 버튼 해제
+
+          var q = questions[currentIndex];
+
+          // 정답/오답 클래스 부여
+          allBtns.forEach(function (btn) {
+            var num = parseInt(btn.getAttribute('data-num'), 10);
+            if (num === q.correctNum) {
+              btn.classList.add('is-correct');
+            } else if (num === selectedOptionNum) {
+              btn.classList.add('is-wrong');
+            } else {
+              btn.classList.add('is-dimmed');
+            }
+          });
+
+          // 점수 부여 (연속 클릭 시에도 정확히 1회만 100점 부여)
+          var isCorrect = (selectedOptionNum === q.correctNum);
+          if (isCorrect) {
+            if (!scoreEarnedThisQuestion) {
+              currentScore += 100;
+              scoreEarnedThisQuestion = true;
+            }
+            scoreDisplay.textContent = currentScore + '점';
+            playSound('correct');
+            triggerConfetti();
+
+            resultBanner.className = 'result-banner correct';
+            resultBanner.innerHTML = '<span>🎉</span><span>정답입니다! +100점 획득! [' + q.correctNum + '번 ' + escapeHtml(q.options[q.correctNum - 1]) + ']</span>';
+          } else {
+            playSound('wrong');
+            resultBanner.className = 'result-banner wrong';
+            resultBanner.innerHTML = '<span>💡</span><span>아쉬워요! 정답은 ' + q.correctNum + '번 [' + escapeHtml(q.options[q.correctNum - 1]) + ']입니다. (+0점)</span>';
+          }
+          resultBanner.style.display = 'flex';
+
+          step2.className = 'step-item completed';
+          step3.className = 'step-item active';
+
+          // 버튼 전환: [정답 공개] 숨김 -> [해설 보기] 노출
+          btnReveal.style.display = 'none';
+          btnExplanation.style.display = 'flex';
+          btnNext.style.display = 'none';
+
+          setTimeout(function () {
+            resultBanner.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+          }, 80);
+        }, 850);
+      });
+
+      // ==============================================
+      // 2. 해설 보기 버튼 클릭
+      // ==============================================
+      btnExplanation.addEventListener('click', function () {
+        explanationCard.classList.add('show');
+        playSound('select');
+
+        step3.className = 'step-item completed';
+        step4.className = 'step-item active';
+
+        btnExplanation.style.display = 'none';
+        btnNext.style.display = 'flex';
+
+        setTimeout(function () {
+          explanationCard.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }, 80);
+      });
+
+      // ==============================================
+      // 3. 다음 문제 버튼 클릭
+      // ==============================================
+      btnNext.addEventListener('click', function () {
+        playSound('select');
+        if (currentIndex < questions.length - 1) {
+          currentIndex++;
+          renderCurrentQuestion();
+        } else {
+          showFinalScore();
+        }
+      });
+
+      // ==============================================
+      // 최종 점수 화면 표시
+      // ==============================================
+      function showFinalScore() {
+        quizActiveArea.style.display = 'none';
+        finalScoreSection.classList.add('show');
+
+        var maxScore = questions.length * 100;
+        finalScoreDisplay.textContent = currentScore + '점 / ' + maxScore + '점';
+
+        if (currentScore === maxScore) {
+          triggerConfetti();
+          playSound('fanfare');
+          finalMessage.textContent = '🌟 완벽합니다! 모든 문제를 맞힌 우리 반 퀴즈왕!';
+        } else if (currentScore >= maxScore * 0.6) {
+          playSound('fanfare');
+          finalMessage.textContent = '👏 참 잘했어요! 복습을 멋지게 마쳤습니다!';
+        } else {
+          finalMessage.textContent = '💪 다시 시작해서 만점에 도전해 보세요!';
+        }
+
+        step1.className = 'step-item completed';
+        step2.className = 'step-item completed';
+        step3.className = 'step-item completed';
+        step4.className = 'step-item completed';
+
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+
+      // 최종 화면에서 다시 시작하기 (1번 문제, 0점)
+      btnRestartFinal.addEventListener('click', function () {
+        playSound('select');
+        currentIndex = 0;
+        currentScore = 0;
+        renderCurrentQuestion();
+      });
+
+      // ==============================================
+      // 상단 제어 기능 (소리, 움직임 줄이기, 전체화면)
+      // ==============================================
+
+      // 1) 소리 토글 (기본 꺼짐)
+      btnSoundToggle.addEventListener('click', function () {
+        soundEnabled = !soundEnabled;
+        if (soundEnabled) {
+          btnSoundToggle.classList.add('active-state');
+          soundIcon.textContent = '🔊';
+          soundLabel.textContent = '소리 끄기';
+          getAudioContext(); // 사용자 인터랙션에서 오디오 컨텍스트 깨우기
+          playSound('select');
+        } else {
+          btnSoundToggle.classList.remove('active-state');
+          soundIcon.textContent = '🔇';
+          soundLabel.textContent = '소리 켜기';
+        }
+      });
+
+      // 2) 움직임 줄이기 토글 (색종이 및 반짝임/애니메이션 중지)
+      btnMotionToggle.addEventListener('click', function () {
+        reducedMotion = !reducedMotion;
+        playSound('select');
+        if (reducedMotion) {
+          document.body.classList.add('reduced-motion');
+          btnMotionToggle.classList.add('active-state');
+          motionIcon.textContent = '🚶';
+          motionLabel.textContent = '움직임 끔';
+          // 실행 중인 색종이 지우기
+          confettiCtx.clearRect(0, 0, confettiCanvas.width, confettiCanvas.height);
+          if (confettiAnimId) cancelAnimationFrame(confettiAnimId);
+        } else {
+          document.body.classList.remove('reduced-motion');
+          btnMotionToggle.classList.remove('active-state');
+          motionIcon.textContent = '🏃';
+          motionLabel.textContent = '움직임 켬';
+        }
+      });
+
+      // 3) 전체화면 토글
+      btnFullscreenToggle.addEventListener('click', function () {
+        playSound('select');
+        if (!document.fullscreenElement) {
+          document.documentElement.requestFullscreen().then(function () {
+            fullscreenIcon.textContent = '🗗';
+            fullscreenLabel.textContent = '창모드';
+          }).catch(function () {});
+        } else {
+          if (document.exitFullscreen) {
+            document.exitFullscreen().then(function () {
+              fullscreenIcon.textContent = '⛶';
+              fullscreenLabel.textContent = '전체화면';
+            }).catch(function () {});
+          }
+        }
+      });
+
+      document.addEventListener('fullscreenchange', function () {
+        if (document.fullscreenElement) {
+          fullscreenIcon.textContent = '🗗';
+          fullscreenLabel.textContent = '창모드';
+        } else {
+          fullscreenIcon.textContent = '⛶';
+          fullscreenLabel.textContent = '전체화면';
+        }
+      });
+
+      // ==============================================
+      // [문제 편집 기능]
+      // ==============================================
+      function openEditModal() {
+        if (isRevealing) return; // 드럼롤 중에는 열기 금지
+        playSound('select');
+        modalErrorBox.style.display = 'none';
+        editQuestionsContainer.innerHTML = '';
+
+        questions.forEach(function (q, qIdx) {
+          var card = document.createElement('div');
+          card.className = 'edit-q-card';
+
+          var cardHtml =
+            '<div class="edit-q-title"><span>📌</span><span>문제 ' + (qIdx + 1) + '번 편집</span></div>' +
+            '<div class="form-group">' +
+              '<label class="form-label">질문 내용</label>' +
+              '<input type="text" class="form-input edit-question-input" data-qidx="' + qIdx + '" />' +
+            '</div>' +
+            '<div class="form-group">' +
+              '<label class="form-label">보기 4개 (1~4번)</label>' +
+              '<div class="edit-options-grid">' +
+                '<input type="text" class="form-input edit-opt-input" placeholder="1번 보기" data-qidx="' + qIdx + '" data-oidx="0" />' +
+                '<input type="text" class="form-input edit-opt-input" placeholder="2번 보기" data-qidx="' + qIdx + '" data-oidx="1" />' +
+                '<input type="text" class="form-input edit-opt-input" placeholder="3번 보기" data-qidx="' + qIdx + '" data-oidx="2" />' +
+                '<input type="text" class="form-input edit-opt-input" placeholder="4번 보기" data-qidx="' + qIdx + '" data-oidx="3" />' +
+              '</div>' +
+            '</div>' +
+            '<div class="form-group">' +
+              '<label class="form-label">정답 번호 (1~4 중 선택)</label>' +
+              '<select class="form-select edit-correct-select" data-qidx="' + qIdx + '">' +
+                '<option value="1">1번 보기</option>' +
+                '<option value="2">2번 보기</option>' +
+                '<option value="3">3번 보기</option>' +
+                '<option value="4">4번 보기</option>' +
+              '</select>' +
+            '</div>' +
+            '<div class="form-group">' +
+              '<label class="form-label">해설 설명</label>' +
+              '<textarea class="form-textarea edit-exp-input" rows="2" data-qidx="' + qIdx + '"></textarea>' +
+            '</div>';
+
+          card.innerHTML = cardHtml;
+
+          // 값 안전하게 바인딩 (따옴표 깨짐 방지)
+          var qInput = card.querySelector('.edit-question-input');
+          qInput.value = q.question;
+
+          var optInputs = card.querySelectorAll('.edit-opt-input');
+          optInputs.forEach(function (inp, i) {
+            inp.value = q.options[i] || '';
+          });
+
+          var corSelect = card.querySelector('.edit-correct-select');
+          corSelect.value = String(q.correctNum);
+
+          var expInput = card.querySelector('.edit-exp-input');
+          expInput.value = q.explanation || '';
+
+          editQuestionsContainer.appendChild(card);
+        });
+
+        editModal.classList.add('show');
+        document.body.style.overflow = 'hidden';
+      }
+
+      function closeEditModal() {
+        editModal.classList.remove('show');
+        document.body.style.overflow = '';
+      }
+
+      btnOpenEdit.addEventListener('click', openEditModal);
+
+      // 취소 버튼
+      btnModalCancel.addEventListener('click', function () {
+        playSound('select');
+        closeEditModal();
+      });
+
+      // 적용 버튼
+      btnModalApply.addEventListener('click', function () {
+        modalErrorBox.style.display = 'none';
+
+        var newQuestions = [];
+        var qCards = editQuestionsContainer.querySelectorAll('.edit-q-card');
+
+        for (var i = 0; i < qCards.length; i++) {
+          var card = qCards[i];
+          var qIdx = i + 1;
+          var qText = card.querySelector('.edit-question-input').value.trim();
+          var expText = card.querySelector('.edit-exp-input').value.trim();
+          var correctVal = parseInt(card.querySelector('.edit-correct-select').value, 10);
+
+          var optInputs = card.querySelectorAll('.edit-opt-input');
+          var opts = [];
+          for (var j = 0; j < optInputs.length; j++) {
+            var oVal = optInputs[j].value.trim();
+            if (!oVal) {
+              showModalError('⚠️ [문제 ' + qIdx + '번] 보기 ' + (j + 1) + '번이 비어있습니다. 모든 보기를 입력해 주세요.');
+              optInputs[j].focus();
+              return;
+            }
+            opts.push(oVal);
+          }
+
+          if (!qText) {
+            showModalError('⚠️ [문제 ' + qIdx + '번] 질문 내용이 비어있습니다. 질문을 입력해 주세요.');
+            card.querySelector('.edit-question-input').focus();
+            return;
+          }
+
+          if (isNaN(correctVal) || correctVal < 1 || correctVal > 4) {
+            showModalError('⚠️ [문제 ' + qIdx + '번] 정답 번호는 1~4 중 하나여야 합니다.');
+            return;
+          }
+
+          newQuestions.push({
+            id: qIdx,
+            tag: "수학 퀴즈 " + qIdx,
+            question: qText,
+            options: opts,
+            correctNum: correctVal,
+            explanation: expText || (qIdx + "번 문제의 정답은 " + correctVal + "번입니다."),
+            visualType: (i < DEFAULT_QUESTIONS.length ? DEFAULT_QUESTIONS[i].visualType : null)
+          });
+        }
+
+        // 적용 및 0점/1번 문제부터 시작
+        questions = newQuestions;
+        currentIndex = 0;
+        currentScore = 0;
+        closeEditModal();
+        playSound('correct');
+        renderCurrentQuestion();
+      });
+
+      function showModalError(msg) {
+        modalErrorBox.textContent = msg;
+        modalErrorBox.style.display = 'block';
+        modalErrorBox.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        playSound('warn');
+      }
+
+      editModal.addEventListener('click', function (e) {
+        if (e.target === editModal) closeEditModal();
+      });
+
+      function escapeHtml(str) {
+        if (str === null || str === undefined) return '';
+        return String(str)
+          .replace(/&/g, '&amp;')
+          .replace(/</g, '&lt;')
+          .replace(/>/g, '&gt;')
+          .replace(/"/g, '&quot;')
+          .replace(/'/g, '&#39;');
+      }
+
+      // 첫 문제 렌더링
+      renderCurrentQuestion();
+    })();
+  </script>
+</body>
+</html>
